@@ -12,8 +12,6 @@
     "sdkVersion": "3",
     "shortName": "Frankie G",
     "targetPlatforms": [
-        "aplite",
-        "basalt",
         "chalk"
     ],
     "uuid": "76339c59-50ba-4705-adc2-f78474e8a4f2",
