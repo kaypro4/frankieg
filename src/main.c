@@ -5,14 +5,9 @@ static TextLayer *s_time_layer;
 
 static void update_time() {
   // Get a tm structure
-  
   time_t temp = time(NULL); 
   struct tm *tick_time = localtime(&temp);
 
-  // Write the current hours and minutes into a buffer
-  //static char s_buffer[8];
-  //strftime(s_buffer, sizeof(s_buffer), clock_is_24h_style() ?
-                                           //"%H:%M" : "%I:%M", tick_time);
   //hour
   static char out_hour_text[11];
   static char out_hour[11];
@@ -22,7 +17,7 @@ static void update_time() {
   static char out_half[7];
   
   //oclock
-  static char out_oclock[10];
+  static char out_oclock[10] = "o'clock";
   
   //mins
   static int out_mins[4];
@@ -38,33 +33,21 @@ static void update_time() {
   int bhour = tick_time->tm_hour;
   int bmin = tick_time->tm_min;
   
-  // deal with the hours
-  switch(bhour) {
-    case 12:
-      strcpy(out_hour_text, "noon ");
-      break;
-    case 0:
-      strcpy(out_hour_text, "midnight ");
-      break;
-    default:
-        if (bhour > 12){
-          *out_hour_num = bhour - 12;
-        }else{
-          *out_hour_num = bhour;
-        }   
-        strcpy(out_oclock, "o'clock ");
-  }
-  
+  //enable for testing...
+  //bhour = 5;
+  //bmin = 30;
+
   if (bmin == 30){
     strcpy(out_half, "half ");
   }else{
     if (bmin > 30) {
-      strcpy(out_half, "");
       *out_mins = (bmin - 60) * -1;
     }else{
       *out_mins = bmin;
     }
   }
+  
+  *out_hour_num = bhour;
   
   if (bmin > 30){
     strcpy(out_til_past, "til ");
@@ -73,27 +56,49 @@ static void update_time() {
     strcpy(out_til_past, "past ");
   }
   
-  if (out_hour_num != 0) {
+  if (*out_hour_num > 12){
+    *out_hour_num = *out_hour_num - 12;
+  }  
+  
+  if (*out_hour_num == 12) {
+    strcpy(out_hour_text, "noon");
+  }
+  
+  if (*out_hour_num == 0) {
+    strcpy(out_hour_text, "midnight");
+  }
+  
+  if ((*out_hour_num != 0) && (*out_hour_num != 12)) {
     snprintf(out_hour,3,"%i",*out_hour_num);
   }else{
-    snprintf(out_hour,3,"%s",out_hour_text);
+    snprintf(out_hour,9,"%s",out_hour_text);
   }
   
   //out_mins + out_half + out_til_past + out_hour + out_oclock
   
   snprintf(out_mins_c,sizeof(out_mins),"%i",*out_mins);
   
-  strcpy(out_text, " ");
+  //clear out the output before we populate it
+  strcpy(out_text, "");
   
   strcat (out_mins_c, " ");
-  if (bmin != 30){
-    strcat (out_text, out_mins_c);
+  
+  if ((bmin != 30) && (bmin != 0)) {
+    strcat (out_text, out_mins_c); 
   }
+  
   strcat (out_text, out_half);
-  strcat (out_text, out_til_past);
+  
+  if (bmin != 0) {
+    strcat (out_text, out_til_past);
+  }
+  
   strcat (out_hour, " ");
   strcat (out_text, out_hour);
-  strcat (out_text, out_oclock);
+  
+  if ((*out_hour_num != 12) && (*out_hour_num != 0)) {
+    strcat (out_text, out_oclock);
+  }
   
   // Display this time on the TextLayer
   //text_layer_set_text(s_time_layer, s_buffer);
@@ -112,16 +117,17 @@ static void main_window_load(Window *window) {
 
   // Create the TextLayer with specific bounds
   s_time_layer = text_layer_create(
-      GRect(0, PBL_IF_ROUND_ELSE(72, 52), bounds.size.w, 50));
+      GRect(0, PBL_IF_ROUND_ELSE(40, 52), bounds.size.w, 100));
 
   // Improve the layout to be more like a watchface
   text_layer_set_background_color(s_time_layer, GColorClear);
   text_layer_set_text_color(s_time_layer, GColorBlack);
   text_layer_set_text(s_time_layer, "loading...");
-  text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
+  //text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
+  text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_BITHAM_42_LIGHT));
   text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
-  //text_layer_set_text_alignment(s_time_layer, GTextOverflowModeWordWrap);
-
+  text_layer_set_overflow_mode(s_time_layer, GTextOverflowModeWordWrap);
+  
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
 }
