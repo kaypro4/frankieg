@@ -10,9 +10,9 @@ static void update_time() {
   struct tm *tick_time = localtime(&temp);
 
   // Write the current hours and minutes into a buffer
-  static char s_buffer[8];
-  strftime(s_buffer, sizeof(s_buffer), clock_is_24h_style() ?
-                                           "%H:%M" : "%I:%M", tick_time);
+  //static char s_buffer[8];
+  //strftime(s_buffer, sizeof(s_buffer), clock_is_24h_style() ?
+                                           //"%H:%M" : "%I:%M", tick_time);
   //hour
   static char out_hour_text[11];
   static char out_hour[11];
@@ -59,6 +59,7 @@ static void update_time() {
     strcpy(out_half, "half ");
   }else{
     if (bmin > 30) {
+      strcpy(out_half, "");
       *out_mins = (bmin - 60) * -1;
     }else{
       *out_mins = bmin;
@@ -85,7 +86,9 @@ static void update_time() {
   strcpy(out_text, " ");
   
   strcat (out_mins_c, " ");
-  strcat (out_text, out_mins_c);
+  if (bmin != 30){
+    strcat (out_text, out_mins_c);
+  }
   strcat (out_text, out_half);
   strcat (out_text, out_til_past);
   strcat (out_hour, " ");
