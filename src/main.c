@@ -3,6 +3,14 @@
 static Window *s_main_window;
 static TextLayer *s_time_layer;
 
+static void verticalAlignTextLayer(TextLayer *layer) {
+    GRect frame = layer_get_frame(text_layer_get_layer(layer));
+    GSize content = text_layer_get_content_size(layer);
+    layer_set_frame(text_layer_get_layer(layer),
+           GRect(frame.origin.x, frame.origin.y + (frame.size.h - content.h - 5) / 2, 
+           frame.size.w, content.h + 5));
+}
+
 static void update_time() {
   // Get a tm structure
   time_t temp = time(NULL); 
@@ -103,16 +111,12 @@ static void update_time() {
     strcat (out_text, out_oclock);
   }
   
+  //adjust the layer size so that the text is always vertically aligned
+  verticalAlignTextLayer(s_time_layer);
+
   // Display this time on the TextLayer
   //text_layer_set_text(s_time_layer, s_buffer);
   text_layer_set_text(s_time_layer, out_text);
-  
-  //adjust the layer size so that the text is always vertically aligned
-  GRect frame = layer_get_frame(text_layer_get_layer(s_time_layer));
-  GSize content_size = text_layer_get_content_size(s_time_layer);
-  layer_set_frame(text_layer_get_layer(s_time_layer), 
-    GRect(frame.origin.x, frame.origin.y + ((frame.size.h - content_size.h) - 12) / 2, frame.size.w, content_size.h + 8));
-  
   
 }
 
@@ -129,7 +133,7 @@ static void main_window_load(Window *window) {
   // Create the TextLayer with specific bounds
   s_time_layer = text_layer_create(
       GRect(0, PBL_IF_ROUND_ELSE(40, 52), bounds.size.w, 100));
-
+  
   // Improve the layout to be more like a watchface
   text_layer_set_background_color(s_time_layer, GColorClear);
   text_layer_set_text_color(s_time_layer, GColorBlack);
