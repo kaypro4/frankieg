@@ -34,12 +34,15 @@ static void update_time() {
   int bmin = tick_time->tm_min;
   
   //enable for testing...
-  //bhour = 5;
-  //bmin = 30;
+  //bhour = 12;
+  //bmin = 28;
 
-  if (bmin == 30){
+  *out_mins = bmin;
+  
+  if (*out_mins == 30){
     strcpy(out_half, "half ");
   }else{
+    strcpy(out_half, "");
     if (bmin > 30) {
       *out_mins = (bmin - 60) * -1;
     }else{
@@ -103,6 +106,14 @@ static void update_time() {
   // Display this time on the TextLayer
   //text_layer_set_text(s_time_layer, s_buffer);
   text_layer_set_text(s_time_layer, out_text);
+  
+  //adjust the layer size so that the text is always vertically aligned
+  GRect frame = layer_get_frame(text_layer_get_layer(s_time_layer));
+  GSize content_size = text_layer_get_content_size(s_time_layer);
+  layer_set_frame(text_layer_get_layer(s_time_layer), 
+    GRect(frame.origin.x, frame.origin.y + ((frame.size.h - content_size.h) - 12) / 2, frame.size.w, content_size.h + 8));
+  
+  
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
