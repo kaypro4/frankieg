@@ -7,7 +7,14 @@
     "longName": "Frankie G",
     "projectType": "native",
     "resources": {
-        "media": []
+        "media": [
+            {
+                "file": "images/frankieg.png",
+                "name": "screenshot_1",
+                "targetPlatforms": null,
+                "type": "bitmap"
+            }
+        ]
     },
     "sdkVersion": "3",
     "shortName": "Frankie G",
