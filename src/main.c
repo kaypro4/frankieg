@@ -3,12 +3,13 @@
 static Window *s_main_window;
 static TextLayer *s_time_layer;
 
+//function used to vertically align text on watchface
 static void verticalAlignTextLayer(TextLayer *layer) {
     GRect frame = layer_get_frame(text_layer_get_layer(layer));
     GSize content = text_layer_get_content_size(layer);
-    layer_set_frame(text_layer_get_layer(layer),
+    layer_set_frame(text_layer_get_layer(layer), 
            GRect(frame.origin.x, frame.origin.y + (frame.size.h - content.h - 5) / 2, 
-           frame.size.w, content.h + 5));
+           frame.size.w, content.h + 3));
 }
 
 static void update_time() {
@@ -41,56 +42,65 @@ static void update_time() {
   int bhour = tick_time->tm_hour;
   int bmin = tick_time->tm_min;
   
-  //enable for testing...
+  //enable for testing different times
   //bhour = 12;
   //bmin = 28;
 
   *out_mins = bmin;
+  *out_hour_num = bhour;
   
+  //if we're at 30 min mark, then print half
   if (*out_mins == 30){
     strcpy(out_half, "half ");
   }else{
     strcpy(out_half, "");
+    //if we're over 30 min mark, then we need the mins remaining til the hour
     if (bmin > 30) {
       *out_mins = (bmin - 60) * -1;
     }else{
+      //otherwise, we just get the mins after the hour
       *out_mins = bmin;
     }
   }
   
-  *out_hour_num = bhour;
-  
+  //determine if we should use til or past
   if (bmin > 30){
     strcpy(out_til_past, "til ");
+    //since it's til, we need to add an hour to the current hour
     *out_hour_num = *out_hour_num + 1;
   }else{
     strcpy(out_til_past, "past ");
   }
   
-  if (*out_hour_num > 12){
+  //check to see if 12 hour setting and if so and greater than 12 then subtract 12 from hours
+  if (!clock_is_24h_style() && *out_hour_num > 12){
     *out_hour_num = *out_hour_num - 12;
   }  
   
+  //if hour = 12, then it's noon
   if (*out_hour_num == 12) {
     strcpy(out_hour_text, "noon");
   }
   
+  //if hour = 0 then it's midnight
   if (*out_hour_num == 0) {
     strcpy(out_hour_text, "midnight");
   }
   
+  //if it's not noon or midnight then we output the number, if it is then we output text for hour
   if ((*out_hour_num != 0) && (*out_hour_num != 12)) {
     snprintf(out_hour,3,"%i",*out_hour_num);
   }else{
     snprintf(out_hour,9,"%s",out_hour_text);
   }
   
+  //order for constructing the output...
   //out_mins + out_half + out_til_past + out_hour + out_oclock
-  
-  snprintf(out_mins_c,sizeof(out_mins),"%i",*out_mins);
   
   //clear out the output before we populate it
   strcpy(out_text, "");
+  
+  snprintf(out_mins_c,sizeof(out_mins),"%i",*out_mins);
   
   strcat (out_mins_c, " ");
   
@@ -110,19 +120,18 @@ static void update_time() {
   if ((*out_hour_num != 12) && (*out_hour_num != 0)) {
     strcat (out_text, out_oclock);
   }
-  
-  //adjust the layer size so that the text is always vertically aligned
-  verticalAlignTextLayer(s_time_layer);
 
   // Display this time on the TextLayer
   //text_layer_set_text(s_time_layer, s_buffer);
   text_layer_set_text(s_time_layer, out_text);
   
+  //adjust the layer size so that the text is always vertically aligned
+  verticalAlignTextLayer(s_time_layer);
+  
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
-  update_time();
-  
+  update_time(); 
 }
 
 static void main_window_load(Window *window) {
@@ -137,8 +146,7 @@ static void main_window_load(Window *window) {
   // Improve the layout to be more like a watchface
   text_layer_set_background_color(s_time_layer, GColorClear);
   text_layer_set_text_color(s_time_layer, GColorBlack);
-  text_layer_set_text(s_time_layer, "loading...");
-  //text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
+  text_layer_set_text(s_time_layer, "finding the time...");
   text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_BITHAM_42_LIGHT));
   text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
   text_layer_set_overflow_mode(s_time_layer, GTextOverflowModeWordWrap);
