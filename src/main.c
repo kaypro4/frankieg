@@ -8,8 +8,8 @@ static void verticalAlignTextLayer(TextLayer *layer) {
     GRect frame = layer_get_frame(text_layer_get_layer(layer));
     GSize content = text_layer_get_content_size(layer);
     layer_set_frame(text_layer_get_layer(layer), 
-           GRect(frame.origin.x, frame.origin.y + (frame.size.h - content.h - 5) / 2, 
-           frame.size.w, content.h + 3));
+           GRect(frame.origin.x, frame.origin.y + (frame.size.h - content.h - 8) / 2, 
+           frame.size.w, content.h + 8));
 }
 
 static void update_time() {
@@ -44,7 +44,7 @@ static void update_time() {
   
   //enable for testing different times
   //bhour = 12;
-  //bmin = 28;
+  //bmin = 0;
 
   *out_mins = bmin;
   *out_hour_num = bhour;
@@ -72,23 +72,23 @@ static void update_time() {
     strcpy(out_til_past, "past ");
   }
   
-  //check to see if 12 hour setting and if so and greater than 12 then subtract 12 from hours
-  if (!clock_is_24h_style() && *out_hour_num > 12){
-    *out_hour_num = *out_hour_num - 12;
-  }  
-  
   //if hour = 12, then it's noon
   if (*out_hour_num == 12) {
     strcpy(out_hour_text, "noon");
   }
   
   //if hour = 0 then it's midnight
-  if (*out_hour_num == 0) {
+  if (*out_hour_num == 0 || *out_hour_num == 24) {
     strcpy(out_hour_text, "midnight");
   }
   
+  //check to see if 12 hour setting and if so and greater than 12 then subtract 12 from hours
+  if (!clock_is_24h_style() && *out_hour_num > 12){
+    *out_hour_num = *out_hour_num - 12;
+  }  
+  
   //if it's not noon or midnight then we output the number, if it is then we output text for hour
-  if ((*out_hour_num != 0) && (*out_hour_num != 12)) {
+  if ((*out_hour_num != 0) && (*out_hour_num != 12) && (*out_hour_num != 24)) {
     snprintf(out_hour,3,"%i",*out_hour_num);
   }else{
     snprintf(out_hour,9,"%s",out_hour_text);
@@ -122,7 +122,6 @@ static void update_time() {
   }
 
   // Display this time on the TextLayer
-  //text_layer_set_text(s_time_layer, s_buffer);
   text_layer_set_text(s_time_layer, out_text);
   
   //adjust the layer size so that the text is always vertically aligned
